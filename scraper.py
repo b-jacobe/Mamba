@@ -1,39 +1,33 @@
 """
 scraper.py
 
-Scraper project that focuses on extracting
-Tweets from Bleacher Report's webpage.
-
-version: 1.0
+version: 1.2
 author: Brian Jacobe
 """
 
-import csv
-import urllib2
+import requests
 from bs4 import BeautifulSoup
+import csv
 
-# specify the url
-quote_page = "http://www.bloomberg.com/quote/SPX:IND"
+URL = "http://www.passiton.com/inspirational-quotes"
+r = requests.get(URL)
 
-# query the website and return the html to the variable 'page'
-page = urllib2.urlopen(quote_page)
+soup = BeautifulSoup(r.content, 'html5lib')
+# print(soup.prettify())
+quotes = list()
+table = soup.find('div', attrs={'class':'container'})
 
-# parse the website into BeautifulSoup and store into variable 'soup'
-soup = BeautifulSoup(page, ‘html.parser’)
+for row in table.findAll('div', attrs = {'class':'col-6 col-lg-3 text-center margin-30px-bottom sm-margin-30px-top'}):
+    quote = {} 
+    quote['url'] = row.a['href'] 
+    quote['line'] = row.img['alt']
+    quote['source'] = row.img['src']
+    quotes.append(quote) 
 
-# Derive <div> of name and retrieve value
-name_box = soup.find(‘h1’, attrs={‘class’: ‘name’})
+filename = 'inspirational_quotes.csv'
 
-# remove starting and trailing
-name = name_box.text.strip()
-print(name)
-
-# get the index price
-price_box = soup.find(‘div’, attrs={‘class’:’price’})
-price = price_box.text
-print(price)
-
-# open a csv file with append
-with open('index.csv','a') as csv_file:
-    writer = csv.writer(csv_file)
-    writer.writerow([name, price, datetime.now()])
+with open(filename, 'w') as f: 
+    w = csv.DictWriter(f,['url','line','source']) 
+    w.writeheader() 
+    for quote in quotes: 
+        w.writerow(quote) 
