@@ -1,33 +1,53 @@
 """
-scraper.py
+scrapper.py
 
-version: 1.2
-author: Brian Jacobe
+This updated version scraps from active static
+LoL eSports website. 
+@version: 1.3
+@author: Brian Jacobe
+
 """
 
 import requests
-from bs4 import BeautifulSoup
 import csv
+from bs4 import BeautifulSoup
 
-URL = "http://www.passiton.com/inspirational-quotes"
-r = requests.get(URL)
+# Using request module, get function provides
+# access to the webpage within the argument.
+result = requests.get("https://www.lolesports.com/en_US/teams")
 
-soup = BeautifulSoup(r.content, 'html5lib')
-# print(soup.prettify())
-quotes = list()
-table = soup.find('div', attrs={'class':'container'})
+# To make sure that the site is accessible, print
+# the result code. 200 OK response code to indicate
+# that the page is present.
 
-for row in table.findAll('div', attrs = {'class':'col-6 col-lg-3 text-center margin-30px-bottom sm-margin-30px-top'}):
-    quote = {} 
-    quote['url'] = row.a['href'] 
-    quote['line'] = row.img['alt']
-    quote['source'] = row.img['src']
-    quotes.append(quote) 
+status = result.status_code
+# print(result.status_code)
 
-filename = 'inspirational_quotes.csv'
+# Returns the content of the web page
+# using HTML parsing library built within
+# BeautifulSoup
 
-with open(filename, 'w') as f: 
-    w = csv.DictWriter(f,['url','line','source']) 
-    w.writeheader() 
-    for quote in quotes: 
-        w.writerow(quote) 
+if status == 200:
+    soup = BeautifulSoup(result.content, 'html5lib')
+    teams = list()
+
+    # Data is nested with a div whose class
+    # is 'team'. Store all information into a dictionary
+    # using the find_all function.
+    for row in soup.find_all('div', attrs={'class':'team'}):
+        team = {}
+        team['LCS Team'] = row.h2.text
+        team['Description'] = row.h5.text
+        teams.append(team)
+
+    # Save all data appended into 'teams' dictionary in a
+    # CSV file.
+    filename = "lcs_teams_2019.csv"
+    with open(filename, 'w') as f:
+        w = csv.DictWriter(f,['LCS Team', 'Description'])
+        w.writeheader()
+        for team in teams:
+            w.writerow(team)
+else:
+    print(f'Error: ' + str(status))
+
