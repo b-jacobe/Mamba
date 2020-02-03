@@ -1,8 +1,8 @@
 """
-scrapper.py
+sample_scrapper.py
 
 This updated version scraps from active static
-LoL eSports website. 
+LoL eSports website.
 @version: 1.3
 @author: Brian Jacobe
 
